@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import urllib2
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from datetime import date
+from datetime import datetime
 
 # 当没有添加http://的时候，会报错，python - ValueError: unknown url type
 OrignalUrl = "http://www.pnjyj.gov.cn/"
@@ -9,6 +10,7 @@ url = "http://www.pnjyj.gov.cn/wap.php?action=list&id=23&totalresult=47&pageno="
 NoticeUrl = "http://www.pnjyj.gov.cn/plus/list.php?tid=23"
 page = 1
 today = "("+date.today().isoformat()[-5:]+")"
+month = today[1:3]
 
 def mapping(url,page):
 	UrlString = url + str(page)
@@ -18,12 +20,12 @@ def mapping(url,page):
 		content = soup.find_all("li")
 		if [] != content:
 			for x in content:
-				if x.span.contents[0] == today:
-					print BeautifulSoup(urllib2.urlopen(OrignalUrl+x.a.get("href"))).find("h1").contents[0]
-					print today
-					print OrignalUrl+x.a.get("href")
+				if x.span.contents[0][1:3] == month :
+					print x.span.contents[0] + BeautifulSoup(urllib2.urlopen(OrignalUrl+x.a.get("href"))).find("h1").contents[0]
+					print "\n"
 		else:
-			print u"找不到你要的东西"
+			print month + u"月没有公告" + "\n"
+	print "end\n"
 
 def Notice(url):
 	html = urllib2.urlopen(url)
@@ -51,7 +53,13 @@ def Notice(url):
 			print u"找不到你要的东西1"
 
 def main():
-	mapping(url,page)
+	# 如果时间等于中午12点的时候，就爬一次
+	Time = datetime.now()
+	if (21 == Time.hour) and (45 == Time.minute) :
+		mapping(url,page)
+		raw_input()
+	else:
+		print u"时间还没到12点00分"
 
 if __name__ == '__main__':
 	main()
